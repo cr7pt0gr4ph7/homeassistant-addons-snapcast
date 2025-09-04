@@ -1,0 +1,27 @@
+name: snapcast-client
+version: "0.1"
+slug: snapcastclient
+description: Snapcast client
+startup: services
+boot: auto
+init: false
+audio: true
+options:
+  url: tcp://snapcastserver
+schema:
+  url: str
+  additional_args: str?
+  client:
+    host_id: str?
+    instance_id: str?
+  audio:
+    card: str?
+    latency: int?
+    player: str?
+    mixer: str?
+arch:
+  - armhf
+  - armv7
+  - aarch64
+  - amd64
+  - i386
