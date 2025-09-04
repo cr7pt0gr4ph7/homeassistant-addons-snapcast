@@ -1,0 +1,40 @@
+---
+configuration:
+  stream:
+    streams:
+      name: Source streams
+    buffer:
+      name: Stream buffer size
+    codec:
+      name: Stream codec
+    send_to_muted:
+      name: Send stream to muted devices
+    sampleformat:
+      name: Stream sample format
+  http:
+    enabled:
+      name: Enable web interface (on port 1780)
+      description: >-
+        Enables/Disables the web interface on port 1780, which allows using
+        using browser as a playback device when enabled.
+    doc_root:
+      name: Web Document Root
+  tcp:
+    enabled:
+      name: Enable JSON RPC API (on port 1705)
+      description: >-
+        Enables/Disables the JSON-RPC 2.0 API (over raw TCP) on port 1705
+        that allows controlling the Snapserver remotely.
+  logging:
+    enabled:
+      name: Enable logging
+  server:
+    threads:
+      name: Number of server threads
+    datadir:
+      name: Server data directory
+network:
+  1704/tcp: Snapserver client port (Snapcast binary protocol via TCP)
+  1705/tcp: Snapserver control port (JSON-RPC 2.0 via TCP)
+  1780/tcp: Snapserver web interface (for using your web browser as a playback device)
+  4953/tcp: Snapserver audio stream sink (for streaming audio to the Snapserver)
