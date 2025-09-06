@@ -9,41 +9,53 @@ init: false
 map:
   - share:rw
 options:
-  stream:
-    streams:
-      - tcp://0.0.0.0?port=4953&name=snapbroadcast
-    buffer: 1000
-    codec: flac
-    send_to_muted: false
-    sampleformat: "48000:16:2"
-  http:
-    enabled: true
-    doc_root: ""
-  tcp:
-    enabled: true
-  logging:
-    enabled: true
-  server:
-    threads: "-1"
-    datadir: "/share/snapcast/"
+  # Input streams
+  streams:
+    - tcp://0.0.0.0?port=4953&name=snapbroadcast
+
+  # Stream settings
+  stream_buffer_size: 1000
+  stream_codec: flac
+  stream_sampleformat: "48000:16:2"
+  send_to_muted: false
+
+  # HTTP settings
+  http_enabled: true
+  http_doc_root: ""
+
+  # TCP settings
+  tcp_enabled: true
+
+  # Logging settings
+  logging_enabled: true
+
+  # Server settings
+  server_threads: "-1"
+  server_datadir: "/share/snapcast/"
 schema:
-  stream:
-    streams:
-      - str
-    buffer: int
-    codec: str
-    send_to_muted: str
-    sampleformat: str
-  http:
-    enabled: bool
-    doc_root: str
-  tcp:
-    enabled: bool
-  logging:
-    enabled: bool
-  server:
-    threads: int
-    datadir: str
+  # Input streams
+  streams:
+    - str
+
+  # Stream settings
+  stream_buffer_size: int
+  stream_codec: str
+  stream_sampleformat: str
+  send_to_muted: str
+
+  # HTTP settings
+  http_enabled: bool
+  http_doc_root: str
+
+  # TCP settings
+  tcp_enabled: bool
+
+  # Logging settings
+  logging_enabled: bool
+
+  # Server settings
+  server_threads: int
+  server_datadir: str
 ports:
   1704/tcp: 1704
   1705/tcp: 1705
