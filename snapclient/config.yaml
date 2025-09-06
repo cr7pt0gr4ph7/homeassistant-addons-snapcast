@@ -10,15 +10,23 @@ options:
   url: tcp://snapcastserver
 schema:
   url: str
+
+  # Client settings
+  host_id: str?
+  instance_id: str?
+
+  # Card settings
+  card: str?
+  latency: int?
+  player: str?
+  mixer: str?
+
+  # Logging settings
+  logging_enabled: bool?
+  logging_level: str?
+
+  # Custom CLI options
   additional_args: str?
-  client:
-    host_id: str?
-    instance_id: str?
-  audio:
-    card: str?
-    latency: int?
-    player: str?
-    mixer: str?
 arch:
   - armhf
   - armv7

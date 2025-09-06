@@ -14,16 +14,19 @@ function always_add_cli_option() {
     options+=($1 "$(bashio::config $2 $3)")
 }
 
-add_cli_option '--hostID' 'client.host_id'
+# Client settings
+add_cli_option '--hostID' 'host_id'
 add_cli_option '--instance' 'client.instance_id'
-add_cli_option '--Soundcard' 'audio.card'
-add_cli_option '--Latency' 'audio.latency'
-add_cli_option '--player' 'audio.player'
-add_cli_option '--mixer' 'audio.mixer'
 
-if ! bashio::config.false 'logging.enabled'; then
+# Soundcard settings
+add_cli_option '--Soundcard' 'card'
+add_cli_option '--Latency' 'latency'
+add_cli_option '--player' 'player'
+add_cli_option '--mixer' 'mixer'
+
+if ! bashio::config.false 'logging_enabled'; then
     options+=(--logsink stdout)
-    options+=(--logfilter "*:$(bashio::config 'logging.level' 'info')")
+    options+=(--logfilter "*:$(bashio::config 'logging_level' 'info')")
 else
     options+=(--logsink null)
 fi
