@@ -1,8 +1,9 @@
 ---
-name: snapcast-server
+name: snapcast_server
 version: "0.1"
-slug: snapcastserver
+slug: snapcast_server
 description: Snapcast Server
+url: https://github.com/cr7pt0gr4ph7/homeassistant-addons-snapcast/tree/main/snapserver
 startup: system
 boot: auto
 init: false

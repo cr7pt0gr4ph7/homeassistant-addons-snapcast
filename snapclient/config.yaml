@@ -1,7 +1,8 @@
-name: snapcast-client
+name: snapcast_client
 version: "0.1"
-slug: snapcastclient
+slug: snapcast_client
 description: Snapcast client
+url: https://github.com/cr7pt0gr4ph7/homeassistant-addons-snapcast/tree/main/snapclient
 startup: services
 boot: auto
 init: false
