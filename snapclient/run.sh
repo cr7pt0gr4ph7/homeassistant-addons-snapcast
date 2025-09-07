@@ -16,7 +16,7 @@ function always_add_cli_option() {
 
 # Client settings
 add_cli_option '--hostID' 'host_id'
-add_cli_option '--instance' 'client.instance_id'
+add_cli_option '--instance' 'instance_id'
 
 # Soundcard settings
 add_cli_option '--Soundcard' 'card'
