@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-from typing import Final
+from typing import Any, Final
 
 import asyncio
 import logging
 import sys
 import threading
 
+from pulsectl import PulseEventFacilityEnum, PulseEventTypeEnum
 from pulsectl_asyncio import PulseAsync
 
 _LOGGER = logging.getLogger('snapclient_automatic')
@@ -80,6 +81,24 @@ def setup_logging(log_no_color: bool = False):
         ),
     )
 
+handled_sinks: dict[int, Any] = {}
+
+async def handle_sink_added(pulse: PulseAsync, sink_index: int) -> None:
+    sink_info = await pulse.sink_info(sink_index)
+    _LOGGER.info("Audio sink %i was registered: Name=%s Driver=%s", sink_index, sink_info.name, sink_info.driver)
+    handled_sinks[sink_index] = True
+    pass
+
+async def handle_sink_removed(pulse: PulseAsync, sink_index: int) -> None:
+    # We only care about audio sinks for which we have created a snapclient
+    if sink_index in handled_sinks:
+        _LOGGER.info("Audio sink %i was removed", sink_index)
+        del handled_sinks[sink_index]
+    else:
+        _LOGGER.info("Ignoring removal of ignored audio sink %i", sink_index)
+        return
+
+    pass
 
 async def main():
     setup_logging()
@@ -89,5 +108,11 @@ async def main():
     async with PulseAsync("snapclient-listener") as pulse:
         async for event in pulse.subscribe_events('sink'):
             _LOGGER.info("Received PulseAudio event: %s", event)
+
+            if event.facility == PulseEventFacilityEnum.sink:
+                if event.t == PulseEventTypeEnum.new:
+                    await handle_sink_added(pulse, int(event.index))
+                elif event.t == PulseEventTypeEnum.remove:
+                    await handle_sink_removed(pulse, int(event.index))
 
 asyncio.run(main())
