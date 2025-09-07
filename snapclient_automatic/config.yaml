@@ -9,9 +9,9 @@ init: false
 audio: true
 options:
   url: tcp://snapcastserver
+  filters: []
 schema:
   url: str
-  filters: null
 arch:
   - armhf
   - armv7
