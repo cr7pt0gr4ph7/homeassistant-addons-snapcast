@@ -1,7 +1,7 @@
-name: snapcast_client
+name: Snapcast Client
 version: "0.1"
 slug: snapcast_client
-description: Snapcast client
+description: Run a Snapcast client on your HASS server
 url: https://github.com/cr7pt0gr4ph7/homeassistant-addons-snapcast/tree/main/snapclient
 startup: services
 boot: auto
