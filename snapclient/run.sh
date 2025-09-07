@@ -19,8 +19,8 @@ add_cli_option '--hostID' 'host_id'
 add_cli_option '--instance' 'instance_id'
 
 # Soundcard settings
-add_cli_option '--Soundcard' 'card'
-add_cli_option '--Latency' 'latency'
+add_cli_option '--soundcard' 'card'
+add_cli_option '--latency' 'latency'
 add_cli_option '--player' 'player'
 add_cli_option '--mixer' 'mixer'
 
