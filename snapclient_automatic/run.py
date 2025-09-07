@@ -5,8 +5,11 @@ import asyncio
 import logging
 import sys
 import threading
+import yaml
 
-from pulsectl import PulseEventFacilityEnum, PulseEventTypeEnum
+import voluptuous as vol
+
+from pulsectl import PulseEventFacilityEnum, PulseEventTypeEnum, PulseSinkInfo
 from pulsectl_asyncio import PulseAsync
 
 _LOGGER = logging.getLogger('snapclient_automatic')
@@ -15,6 +18,21 @@ _LOGGER = logging.getLogger('snapclient_automatic')
 FORMAT_DATE: Final = "%Y-%m-%d"
 FORMAT_TIME: Final = "%H:%M:%S"
 FORMAT_DATETIME: Final = f"{FORMAT_DATE} {FORMAT_TIME}"
+
+ATTR_URL: Final = "url"
+ATTR_FILTERS: Final = "filters"
+ATTR_CONDITIONS: Final = "conditions"
+ATTR_ACCEPT: Final = "accept"
+ATTR_LATENCY: Final = "latency"
+
+CONFIG_SCHEMA = vol.Schema({
+    vol.Required(ATTR_URL): str,
+    vol.Optional(ATTR_FILTERS): {
+        vol.Optional(ATTR_CONDITIONS): [str],
+        vol.Optional(ATTR_ACCEPT): vol.Boolean,
+        vol.Optional(ATTR_CONDITIONS): vol.Boolean,
+    }
+})
 
 
 def setup_logging(log_no_color: bool = False):
@@ -81,13 +99,62 @@ def setup_logging(log_no_color: bool = False):
         ),
     )
 
+
 handled_sinks: dict[int, Any] = {}
 
-async def handle_sink_added(pulse: PulseAsync, sink_index: int) -> None:
-    sink_info = await pulse.sink_info(sink_index)
-    _LOGGER.info("Audio sink %i was registered: Name=%s Driver=%s", sink_index, sink_info.name, sink_info.driver)
-    handled_sinks[sink_index] = True
+
+async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) -> None:
+    sink_info: PulseSinkInfo = await pulse.sink_info(sink_index)
+    _LOGGER.info("Audio sink %i was registered: Name=%s Driver=%s",
+                 sink_index, sink_info.name, sink_info.driver)
+    sink_properties = sink_info.proplist
+
+    any_filters = False
+    result_accept = False
+    result_latency = None
+
+    for filter in config[ATTR_FILTERS]:
+        any_filters = True
+        success = True
+        for condition in filter[ATTR_CONDITIONS]:
+            condition: str = condition
+            negate = False
+            if condition.startswith("!"):
+                negate = True
+                condition = condition[1:]
+            condition_parts = condition.split("=", 2)
+            if len(condition_parts) == 2:
+                # Value comparison
+                result = sink_properties[condition_parts[0]] == condition_parts[1]
+            else:
+                # Check for presence/absence of property
+                result = condition_parts[0] in sink_properties
+            if negate:
+                result = not result
+            if not result:
+                success = False
+                break
+        if success:
+            if ATTR_ACCEPT in filter[ATTR_ACCEPT]:
+                result_accept = filter[ATTR_ACCEPT]
+            if ATTR_LATENCY in filter[ATTR_LATENCY]:
+                result_latency = filter[ATTR_LATENCY]
+
+    if result_accept or not any_filters:
+        _LOGGER.info("Creating snapcclient for audio sink %i...", sink_index)
+
+        if result_latency is None:
+            _LOGGER.info("Using default latency setting")
+        else:
+            _LOGGER.info("Using latency override (Latency = %s)", result_latency)
+
+        handled_sinks[sink_index] = True
+    else:
+        _LOGGER.info(
+            "Ignoring audio sink %i due to configured filters", sink_index)
+
     pass
+
 
 async def handle_sink_removed(pulse: PulseAsync, sink_index: int) -> None:
     # We only care about audio sinks for which we have created a snapclient
@@ -100,8 +167,19 @@ async def handle_sink_removed(pulse: PulseAsync, sink_index: int) -> None:
 
     pass
 
+
 async def main():
     setup_logging()
+
+    _LOGGER.info("Loading addon configuration...")
+
+    try:
+        with open("/data/options.json") as stream:
+            raw_config = yaml.safe_load(stream)
+            config = CONFIG_SCHEMA(raw_config)
+    except Any as exc:
+        _LOGGER.error("Failed to load configuration: %s", exc)
+        return
 
     _LOGGER.info("Subscribing to PulseAudio events...")
 
@@ -111,7 +189,7 @@ async def main():
 
             if event.facility == PulseEventFacilityEnum.sink:
                 if event.t == PulseEventTypeEnum.new:
-                    await handle_sink_added(pulse, int(event.index))
+                    await handle_sink_added(pulse, config, int(event.index))
                 elif event.t == PulseEventTypeEnum.remove:
                     await handle_sink_removed(pulse, int(event.index))
 
