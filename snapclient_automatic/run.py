@@ -177,7 +177,7 @@ async def main():
         with open("/data/options.json") as stream:
             raw_config = yaml.safe_load(stream)
             config = CONFIG_SCHEMA(raw_config)
-    except Any as exc:
+    except BaseException as exc:
         _LOGGER.error("Failed to load configuration: %s", exc)
         return
 
