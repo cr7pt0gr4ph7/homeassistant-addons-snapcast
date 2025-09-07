@@ -184,6 +184,14 @@ async def main():
     _LOGGER.info("Subscribing to PulseAudio events...")
 
     async with PulseAsync("snapclient-listener") as pulse:
+        # There's a race condition here if a new audio sink appears
+        # just after we have enumerated the existing audio sinks,
+        # but before we can subscribe to events. Its unlikely to
+        # happen in practice, though, because audio sink change
+        # events and restarts of snapclient-listener are both rare.
+        for sink in await pulse.sink_list():
+            handle_sink_added(pulse)
+
         async for event in pulse.subscribe_events('sink'):
             _LOGGER.info("Received PulseAudio event: %s", event)
 
