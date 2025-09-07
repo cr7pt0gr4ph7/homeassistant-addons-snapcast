@@ -1,1 +1,2 @@
+colorlog==6.9.0
 pulsectl-asyncio==1.2.2
