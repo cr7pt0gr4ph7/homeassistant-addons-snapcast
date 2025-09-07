@@ -10,16 +10,16 @@ audio: true
 options:
   url: tcp://snapcastserver
   filters: []
-schema:
-  url: str
-  filters:
-    - conditions:
-        - property: str
-          condition: list(equal|not_equal)
-          value: str
-      action:
-        accept: bool?
-        latency: int?
+# schema:
+#   url: str
+#   filters:
+#     - conditions:
+#         - property: str
+#           condition: list(equal|not_equal)
+#           value: str
+#       action:
+#         accept: bool?
+#         latency: int?
 arch:
   - armhf
   - armv7
