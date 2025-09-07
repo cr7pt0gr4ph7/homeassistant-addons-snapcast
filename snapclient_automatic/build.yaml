@@ -1,6 +1,6 @@
 build_from:
-  armhf: ghcr.io/hassio-addons/base-python/armhf:latest
-  armv7: ghcr.io/hassio-addons/base-python/armv7:latest
-  aarch64: ghcr.io/hassio-addons/base-python/aarch64:latest
-  amd64: ghcr.io/hassio-addons/base-python/amd64:latest
-  i386: ghcr.io/hassio-addons/base-python/i386:latest
+  armhf: ghcr.io/hassio-addons/base-python/armhf:stable
+  armv7: ghcr.io/hassio-addons/base-python/armv7:stable
+  aarch64: ghcr.io/hassio-addons/base-python/aarch64:stable
+  amd64: ghcr.io/hassio-addons/base-python/amd64:stable
+  i386: ghcr.io/hassio-addons/base-python/i386:stable
