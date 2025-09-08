@@ -185,7 +185,7 @@ async def handle_sink_removed(pulse: PulseAsync, config: dict, sink_index: int) 
     # We only care about audio sinks for which we have created a snapclient
     if sink_index in handled_sinks:
         _LOGGER.info("Audio sink %i was removed", sink_index)
-        await stop_snapclient(config)
+        await stop_snapclient(config, sink_index)
     else:
         _LOGGER.info("Ignoring removal of ignored audio sink %i", sink_index)
         return
@@ -210,21 +210,15 @@ async def stop_snapclient(config: dict, sink_index: int):
     del handled_sinks[sink_index]
 
     # Tell the process to shut down
-    proc.send_signal(signal.CTRL_C_EVENT)
+    _LOGGER.info("Sending SIGTERM to snapclient process with PID %i",
+                    proc.pid, EXIT_TIMEOUT_SECONDS)
+    proc.terminate()
 
     async def terminate_after_timeout():
         if not proc.returncode is None:
             return
 
-        # Request explicit termination of process after timeout period
-        await asyncio.sleep(EXIT_TIMEOUT_SECONDS)
-        if not proc.returncode is None:
-            return
-        _LOGGER.info("Sending SIGTERM to snapclient process with PID %i after %f seconds",
-                     proc.pid, EXIT_TIMEOUT_SECONDS)
-        proc.terminate()
-
-        # Wait some more, then forcefully kill the process
+        # Wait for some time, then forcefully kill the process
         await asyncio.sleep(TERMINATE_TIMEOUT_SECONDS)
         if not proc.returncode is None:
             return
