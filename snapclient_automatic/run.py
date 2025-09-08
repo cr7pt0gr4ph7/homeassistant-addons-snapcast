@@ -2,10 +2,10 @@
 from typing import Any, Final
 
 import asyncio
+import json
 import logging
 import sys
 import threading
-import yaml
 
 import voluptuous as vol
 
@@ -175,7 +175,8 @@ async def main():
 
     try:
         with open("/data/options.json") as stream:
-            raw_config = yaml.safe_load(stream)
+            raw_config = json.load(stream)
+            _LOGGER.info("Raw configuration: %s", raw_config)
             config = CONFIG_SCHEMA(raw_config)
     except BaseException as exc:
         _LOGGER.error("Failed to load configuration: %s", exc)
