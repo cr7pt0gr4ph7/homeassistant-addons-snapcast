@@ -27,11 +27,11 @@ ATTR_LATENCY: Final = "latency"
 
 CONFIG_SCHEMA = vol.Schema({
     vol.Required(ATTR_URL): str,
-    vol.Optional(ATTR_FILTERS): [{
+    vol.Optional(ATTR_FILTERS): [vol.Schema({
         vol.Optional(ATTR_CONDITIONS): [str],
-        vol.Optional(ATTR_ACCEPT): vol.Boolean,
-        vol.Optional(ATTR_CONDITIONS): vol.Boolean,
-    }]
+        vol.Optional(ATTR_ACCEPT): vol.Boolean(),
+        vol.Optional(ATTR_LATENCY): int,
+    })]
 })
 
 
