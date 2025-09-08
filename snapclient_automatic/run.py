@@ -122,8 +122,6 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
     for filter in config[ATTR_FILTERS]:
         any_filters = True
 
-        _LOGGER.info("Processing filter %s", filter)
-
         # Check whether all specified conditions match
         success = True
         for condition in filter.get(ATTR_CONDITIONS, []):
@@ -149,6 +147,8 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
             # Negate result if condition was prefixed with '!'
             if negate:
                 result = not result
+
+            _LOGGER.debug("Processing filter %s => Match: %s", filter, result)
 
             # Early exit if at least one filter has failed to match
             if not result:
@@ -237,7 +237,7 @@ async def stop_snapclient(config: dict, sink_index: int):
         if not proc.returncode is None:
             return
         _LOGGER.error("Snapclient process with PID %i failed to terminate within %f seconds after being sent SIGKILL",
-                     proc.pid, KILL_TIMEOUT_SECONDS)
+                      proc.pid, KILL_TIMEOUT_SECONDS)
 
     asyncio.create_task(terminate_after_timeout())
 
