@@ -36,7 +36,6 @@ CONFIG_SCHEMA = vol.Schema({
 })
 
 # Grace periods for process termination
-EXIT_TIMEOUT_SECONDS: Final = 5
 TERMINATE_TIMEOUT_SECONDS: Final = 5
 KILL_TIMEOUT_SECONDS: Final = 5
 
@@ -210,8 +209,7 @@ async def stop_snapclient(config: dict, sink_index: int):
     del handled_sinks[sink_index]
 
     # Tell the process to shut down
-    _LOGGER.info("Sending SIGTERM to snapclient process with PID %i",
-                    proc.pid, EXIT_TIMEOUT_SECONDS)
+    _LOGGER.info("Sending SIGTERM to snapclient process with PID %i", proc.pid)
     proc.terminate()
 
     async def terminate_after_timeout():
