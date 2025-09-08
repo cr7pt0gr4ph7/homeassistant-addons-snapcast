@@ -105,7 +105,7 @@ handled_sinks: dict[int, Any] = {}
 
 async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) -> None:
     sink_info: PulseSinkInfo = await pulse.sink_info(sink_index)
-    _LOGGER.info("Audio sink %i was registered: Name=%s Driver=%s",
+    _LOGGER.info("Processing discovered audio sink %i (Name=%s Driver=%s)",
                  sink_index, sink_info.name, sink_info.driver)
     sink_properties = sink_info.proplist
 
@@ -116,12 +116,17 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
     for filter in config[ATTR_FILTERS]:
         any_filters = True
         success = True
-        for condition in filter[ATTR_CONDITIONS]:
+        for condition in filter.get(ATTR_CONDITIONS, []):
             condition: str = condition
-            negate = False
+
+            # Parse optional '!' prefix for conditions
             if condition.startswith("!"):
                 negate = True
                 condition = condition[1:]
+            else:
+                negate = False
+
+            # Evaluate the condition
             condition_parts = condition.split("=", 2)
             if len(condition_parts) == 2:
                 # Value comparison
@@ -130,11 +135,17 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
             else:
                 # Check for presence/absence of property
                 result = condition_parts[0] in sink_properties
+
+            # Negate result if condition was prefixed with '!'
             if negate:
                 result = not result
+
+            # Early exit if at least one filter has failed to match
             if not result:
                 success = False
                 break
+
+        # Evaluate actions when filter has matched
         if success:
             if ATTR_ACCEPT in filter[ATTR_ACCEPT]:
                 result_accept = filter[ATTR_ACCEPT]
