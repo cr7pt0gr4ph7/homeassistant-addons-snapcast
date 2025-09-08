@@ -193,7 +193,7 @@ async def main():
         _LOGGER.info("Scanning existing PulseAudio audio sinks...")
 
         for sink in await pulse.sink_list():
-            handle_sink_added(pulse, config, sink.index)
+            await handle_sink_added(pulse, config, sink.index)
 
         _LOGGER.info("Subscribing to PulseAudio events...")
 
