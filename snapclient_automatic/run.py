@@ -151,9 +151,9 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
 
         # Evaluate actions when filter has matched
         if success:
-            if ATTR_ACCEPT in filter[ATTR_ACCEPT]:
+            if ATTR_ACCEPT in filter:
                 result_accept = filter[ATTR_ACCEPT]
-            if ATTR_LATENCY in filter[ATTR_LATENCY]:
+            if ATTR_LATENCY in filter:
                 result_latency = filter[ATTR_LATENCY]
 
     # Default to "accept = True" when no filters have been specified
