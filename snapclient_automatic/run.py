@@ -195,7 +195,7 @@ async def handle_sink_removed(pulse: PulseAsync, config: dict, sink_index: int) 
 
 async def start_snapclient(config: dict, device_mac: str, latency: int | None, sink_index: int):
     proc = await asyncio.create_subprocess_shell(
-        "snapclient --hostID %s --latency %i --player pulse --card %i %s" % (
+        "snapclient --hostID %s --Latency %i --player pulse --Soundcard %i %s" % (
             device_mac, latency or 0, sink_index, config[ATTR_URL]),
         stderr=asyncio.subprocess.STDOUT,
     )
