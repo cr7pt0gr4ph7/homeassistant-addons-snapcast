@@ -27,11 +27,11 @@ ATTR_LATENCY: Final = "latency"
 
 CONFIG_SCHEMA = vol.Schema({
     vol.Required(ATTR_URL): str,
-    vol.Optional(ATTR_FILTERS): {
+    vol.Optional(ATTR_FILTERS): [{
         vol.Optional(ATTR_CONDITIONS): [str],
         vol.Optional(ATTR_ACCEPT): vol.Boolean,
         vol.Optional(ATTR_CONDITIONS): vol.Boolean,
-    }
+    }]
 })
 
 
@@ -125,7 +125,8 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
             condition_parts = condition.split("=", 2)
             if len(condition_parts) == 2:
                 # Value comparison
-                result = sink_properties[condition_parts[0]] == condition_parts[1]
+                result = sink_properties[condition_parts[0]
+                                         ] == condition_parts[1]
             else:
                 # Check for presence/absence of property
                 result = condition_parts[0] in sink_properties
@@ -146,7 +147,8 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
         if result_latency is None:
             _LOGGER.info("Using default latency setting")
         else:
-            _LOGGER.info("Using latency override (Latency = %s)", result_latency)
+            _LOGGER.info("Using latency override (Latency = %s)",
+                         result_latency)
 
         handled_sinks[sink_index] = True
     else:
