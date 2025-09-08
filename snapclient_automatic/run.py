@@ -35,6 +35,11 @@ CONFIG_SCHEMA = vol.Schema({
     })]
 })
 
+# Grace periods for process termination
+EXIT_TIMEOUT_SECONDS: Final = 5
+TERMINATE_TIMEOUT_SECONDS: Final = 5
+KILL_TIMEOUT_SECONDS: Final = 5
+
 
 def setup_logging(log_no_color: bool = False):
     """
@@ -202,8 +207,39 @@ async def stop_snapclient(config: dict, sink_index: int):
     proc = handled_sinks.get(sink_index, None)
     if not proc:
         return
-    proc.send_signal(signal.CTRL_C_EVENT)
     del handled_sinks[sink_index]
+
+    # Tell the process to shut down
+    proc.send_signal(signal.CTRL_C_EVENT)
+
+    async def terminate_after_timeout():
+        if not proc.returncode is None:
+            return
+
+        # Request explicit termination of process after timeout period
+        await asyncio.sleep(EXIT_TIMEOUT_SECONDS)
+        if not proc.returncode is None:
+            return
+        _LOGGER.info("Sending SIGTERM to snapclient process with PID %i after %f seconds",
+                     proc.pid, EXIT_TIMEOUT_SECONDS)
+        proc.terminate()
+
+        # Wait some more, then forcefully kill the process
+        await asyncio.sleep(TERMINATE_TIMEOUT_SECONDS)
+        if not proc.returncode is None:
+            return
+        _LOGGER.info("Sending SIGKILL to snapclient process with PID %i after %f seconds",
+                     proc.pid, TERMINATE_TIMEOUT_SECONDS)
+        proc.kill()
+
+        # If the process is still running, then the system is seriously messed up...
+        await asyncio.sleep(KILL_TIMEOUT_SECONDS)
+        if not proc.returncode is None:
+            return
+        _LOGGER.error("Snapclient process with PID %i failed to terminate within %f seconds after being sent SIGKILL",
+                     proc.pid, KILL_TIMEOUT_SECONDS)
+
+    asyncio.create_task(terminate_after_timeout())
 
 
 async def main():
