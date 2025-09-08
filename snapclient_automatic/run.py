@@ -176,16 +176,6 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
     pass
 
 
-async def start_snapclient(config: dict, device_mac: str, latency: int | None, sink_index: int):
-    proc = await asyncio.create_subprocess_shell(
-        "snapclient --hostID %s --latency %i --player pulse --card %i %s" % (
-            device_mac, latency or 0, sink_index, config[ATTR_URL]),
-        stdout=asyncio.subprocess.STDOUT,
-        stderr=asyncio.subprocess.STDOUT,
-    )
-    handled_sinks[sink_index] = proc
-
-
 async def handle_sink_removed(pulse: PulseAsync, config: dict, sink_index: int) -> None:
     # We only care about audio sinks for which we have created a snapclient
     if sink_index in handled_sinks:
@@ -196,6 +186,16 @@ async def handle_sink_removed(pulse: PulseAsync, config: dict, sink_index: int) 
         return
 
     pass
+
+
+async def start_snapclient(config: dict, device_mac: str, latency: int | None, sink_index: int):
+    proc = await asyncio.create_subprocess_shell(
+        "snapclient --hostID %s --latency %i --player pulse --card %i %s" % (
+            device_mac, latency or 0, sink_index, config[ATTR_URL]),
+        stderr=asyncio.subprocess.STDOUT,
+    )
+    handled_sinks[sink_index] = proc
+    _LOGGER.info("Started snapclient with PID %i", proc.pid)
 
 
 async def stop_snapclient(config: dict, sink_index: int):
