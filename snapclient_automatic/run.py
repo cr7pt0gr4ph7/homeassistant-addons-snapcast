@@ -4,6 +4,7 @@ from typing import Any, Final
 import asyncio
 import json
 import logging
+import signal
 import sys
 import threading
 
@@ -100,7 +101,7 @@ def setup_logging(log_no_color: bool = False):
     )
 
 
-handled_sinks: dict[int, Any] = {}
+handled_sinks: dict[int, asyncio.subprocess.Process] = {}
 
 
 async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) -> None:
@@ -166,7 +167,8 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
             _LOGGER.info("Using latency override (Latency = %s)",
                          result_latency)
 
-        handled_sinks[sink_index] = True
+        device_mac = sink_properties["device.string"]
+        await start_snapclient(config, device_mac, result_latency, sink_index)
     else:
         _LOGGER.info(
             "Ignoring audio sink %i due to configured filters", sink_index)
@@ -174,16 +176,34 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
     pass
 
 
-async def handle_sink_removed(pulse: PulseAsync, sink_index: int) -> None:
+async def start_snapclient(config: dict, device_mac: str, latency: int | None, sink_index: int):
+    proc = await asyncio.create_subprocess_shell(
+        "snapclient --hostID %s --latency %i --player pulse --card %i %s" % (
+            device_mac, latency or 0, sink_index, config[ATTR_URL]),
+        stdout=asyncio.subprocess.STDOUT,
+        stderr=asyncio.subprocess.STDOUT,
+    )
+    handled_sinks[sink_index] = proc
+
+
+async def handle_sink_removed(pulse: PulseAsync, config: dict, sink_index: int) -> None:
     # We only care about audio sinks for which we have created a snapclient
     if sink_index in handled_sinks:
         _LOGGER.info("Audio sink %i was removed", sink_index)
-        del handled_sinks[sink_index]
+        await stop_snapclient(config)
     else:
         _LOGGER.info("Ignoring removal of ignored audio sink %i", sink_index)
         return
 
     pass
+
+
+async def stop_snapclient(config: dict, sink_index: int):
+    proc = handled_sinks.get(sink_index, None)
+    if not proc:
+        return
+    proc.send_signal(signal.CTRL_C_EVENT)
+    del handled_sinks[sink_index]
 
 
 async def main():
@@ -220,6 +240,6 @@ async def main():
                 if event.t == PulseEventTypeEnum.new:
                     await handle_sink_added(pulse, config, int(event.index))
                 elif event.t == PulseEventTypeEnum.remove:
-                    await handle_sink_removed(pulse, int(event.index))
+                    await handle_sink_removed(pulse, config, int(event.index))
 
 asyncio.run(main())
