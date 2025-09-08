@@ -115,6 +115,10 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
 
     for filter in config[ATTR_FILTERS]:
         any_filters = True
+
+        _LOGGER.info("Processing filter %s", filter)
+
+        # Check whether all specified conditions match
         success = True
         for condition in filter.get(ATTR_CONDITIONS, []):
             condition: str = condition
@@ -152,6 +156,7 @@ async def handle_sink_added(pulse: PulseAsync, config: dict, sink_index: int) ->
             if ATTR_LATENCY in filter[ATTR_LATENCY]:
                 result_latency = filter[ATTR_LATENCY]
 
+    # Default to "accept = True" when no filters have been specified
     if result_accept or not any_filters:
         _LOGGER.info("Creating snapcclient for audio sink %i...", sink_index)
 
